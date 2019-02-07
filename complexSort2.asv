@@ -89,19 +89,15 @@ elseif strcmp(MODE,'ascend') || strcmp(MODE,'Ascend')
             if real(X(jj,1)) > real(X(jj+1,1))
                 X=swap(X,jj);
             end
-        end
-    end
-    
-    for ii=1:n-1
-        for jj=1:n-1
-            if imag(X(jj+1,1)) < imag(X(jj,1))
-                X=swap(X,jj);
+            if abs(real(X(jj,1)) - real(X(jj+1,1)))<ee
+                if imag(X(jj+1,1)) < imag(X(jj,1))
+                    X=swap(X,jj);
+                end
             end
         end
     end
-   
     
-    Pos = (X(n/2+1:end,:));
+    Pos = (X(n/2+1:end,:))
     Negi = (X(1:n/2,:));
 %     size(Pos)
 %     size(Negi)

@@ -1,12 +1,29 @@
-function [b] = WFEReduction( a,w)
-%% Using fan2018*
+function [ PhiQa_p,PhiQa_n,PhiFa_p,PhiFa_n,PsiQa_p,PsiFa_p,PsiQa_n,PsiFa_n,llRpa,llRna,sa,kpa,kna,Phiq,pureN] = PolySolve_complex_reduction( w,Ka,Ma,La,nor,tol,l_rm,lim,lim2)
+%% Using fan2016 and fan2018* as reference
 %02/01/2019
 %
 % *Y. Fan, C.W. Zhou, J.P. Laine, M. Ichchou, L. Li,Model reduction schemes 
 % for the wave and finite element method using the free modes of a unit 
 % cell, Computers & Structures,Volume 197,2018.
+%
+% l_rm: number of modes retained
+%
+% lim: used in pi/lim to calculate the tolerance to distinguish pure real
+% and pure imaginary. bigger lim = tighter tolerance; smaller lim = looser
+% tolerance
+%
+% lim2: used to distinguish between useful results and numerical modes.
+% smaller is tighter
+%
+% tol: used to distinguish zeroes from very small values. Smaller is
+% tighter
+%
+% IMPORTANT: when using this function, the PSI (left eigenvector) must be
+% calculated for each frequency and used to calculate the scattering
+% matrix. In this case using the lowest frequency PSI for all frequencies
+% does not work.
 
-if nargin<7
+if nargin<8
     lim = 5;
     lim2 = 2000;
 end
@@ -49,7 +66,7 @@ end
     AA = [ Z sig*I; -DRL -DRR];
     BB = [ sig*I Z; DLL DLR];
     
-    [VR,llR,VL] = eig(AA,BB);
+    [VR,llR] = eig(AA,BB);
 %     VL_nmlzr = inv(VR*VL);
 %     VLn = VL*VL_nmlzr;
 %     [VR,llR] = eigs(DD);
@@ -63,6 +80,7 @@ end
     %% Normalize PhiQ!!!!
     
     [r,~] = size(VR);
+    
 
     Phiq = zeros(size(VR));
     switch nor
@@ -79,10 +97,7 @@ end
     end
     llRd = diag(llR);
     
-    %% Mode reduction
-    % Phiq is the matrix of wave modes
-    % sa is the vector of wavenumbers
-    
+   
     
     %% S1: Separate only the pure real and pure imaginary wavenumbers
 %     oc = unique_tol(sa,tol);
@@ -103,8 +118,8 @@ end
     s2 = s1;
     for ii = 1:length(sa)
 
-        if (abs(real(sa(ii)*La))<pi/lim && abs(imag(sa(ii)*La))<pi/lim)
-            % Separate the numbers lower than pi over something
+%         if (abs(real(sa(ii)*La))<pi/lim && abs(imag(sa(ii)*La))<pi/lim)
+%             % Separate the numbers lower than pi over something
             if (abs(real(sa(ii)))>tol2 && abs(imag(sa(ii)))<tol2) || (abs(real(sa(ii)))<tol2 && abs(imag(sa(ii)))>tol2)
                 % Separate pure real and pure imag and put then in the
                 % beginning of the vector
@@ -112,10 +127,10 @@ end
                 s2(ii,:) = s1(count,:);
                 count = count+1;
             end
-        end
+%         end
     end
     nSort = count-1;
-    
+
     % Sort the pure numbers:
     % First real then imaginary ('descend')
     warning('off','all')
@@ -124,6 +139,10 @@ end
     [Pos, Neg] = pureRISort(s2(1:nSort,:),'descend');
     warning('on','all')
     
+    % Idea! Should we use the l_rm based on the size of Pos?    size(s2)
+    size(Pos);  
+    
+%     size(Pos)
     % Remove the sorted number, retain only the complex (including errors)
     s5 = s2;
     s5(1:nSort,:) = [];
@@ -145,20 +164,21 @@ end
             count = count+1;
         end
     end
-    s8;
+%     s8;
     % Remove the complex small numbers, retain the rest
     s5(orderV,:) = [];
 
-%     s8 = s5;
+    s8 = s5;
 
     % Sort the complex numbers: first the real positive, if equal real,
     % imaginary negative first
     warning('off','all')
     [Cpos, Cneg] = complexSort2(s8,'ascend',1e-2);
+%     [Cpos, Cneg] = complexSort2(s5,'ascend',1e-2);      %Just use everything!
 %     [Cpos, Cneg] = complexSort2(s8,'descend',1e-2);
     warning('on','all')
-    size(Cpos);
-    size(Cneg);
+    size(Cpos)
+    size(Cneg)
     %% Join back all the numbers:
     % First pure real, second the pure imaginary, third the complex and
     % last the errors
@@ -185,8 +205,8 @@ end
     index_p = real(s6p(:,2));
     index_n = real(s6n(:,2));
     
-    [ppa,o] = size(s6p);
-    [nn,o] = size(s6n);
+    [ppa,~] = size(s6p);
+    [nn,~] = size(s6n);
     
     % Separate the wavenumbers vectors
     kpa = s6p(1:ppa,1);
@@ -197,24 +217,23 @@ end
     llRna = llRd(index_n);
     
     % Calculate the "unsorted" wavemodes and left eigenvectors
-    Phif = D*Phiq;
-    Psiq = pinv(Phiq);  %Another way is to calculate VR*inv(VR*VL) usinge VL from eig or VL'=eig(AA')
-    Psif = pinv(Phif);
+%     Phif = D*Phiq;
+%     Psiq = pinv(Phiq);  %Another way is to calculate VR*inv(VR*VL) usinge VL from eig or VL'=eig(AA')
+%     Psif = pinv(Phif);
     
     Phiq2 = Phiq(:,[index_p index_n]);
-    Phif2 = Phiq(:,[index_p index_n]);
+%     Phif2 = Phiq(:,[index_p index_n]);
     
     Phiql1 = Phiq2(1:dofa,:);
-    Phiqa1 = Phiql1;
 %     Phifa1 = Phif(1:dofa,:);
     Phiqr1 = Phiq2(dofa+1:2*dofa,:);     %Zhong
-    Phifa1 = DLL*Phiql1 + DLR*Phiqr1;
-    Phifr1 = DRL*Phiql1 + DRR*Phiqr1;
+    Phifl1 = DLL*Phiql1 + DLR*Phiqr1;
+%     Phifr1 = DRL*Phiql1 + DRR*Phiqr1;
 
-    PhiQa_p = Phiqa1(:,1:length(index_p));
-    PhiQa_n = Phiqa1(:,length(index_p)+1:end);
-    PhiFa_p = Phifa1(:,1:length(index_p));
-    PhiFa_n = Phifa1(:,length(index_p)+1:end);
+    PhiQa_p = Phiql1(:,1:length(index_p));
+    PhiQa_n = Phiql1(:,length(index_p)+1:end);
+    PhiFa_p = Phifl1(:,1:length(index_p));
+    PhiFa_n = Phifl1(:,length(index_p)+1:end);
 %%   MITROU  
 %     PHI = [PhiQa_p PhiQa_n;PhiFa_p PhiFa_n];
 %     PSI = pinv(PHI);
@@ -243,8 +262,16 @@ end
     PsiFa_n = PSIn(:,1:dofa);
     PsiQa_n = PSIn(:,dofa+1:end);
 
-
+    %% Mode reduction by fan2018
+    %   There are 5 types of model reduction cited by Fan2018.
+    %   Here we try all of then, and comparison will tell which is 
+    % better for our application. All of then differ only in the way
+    % the residual flexibility is used. The low order H (H_low) is
+    % calculated in the same way for all cases.
     
-%     a = struct('PhiQp',PhiQa_p,'PhiQn',PhiQa_n,'PhiFp',PhiFa_p,'PhiFn',PhiFa_n,'PsiQp',PsiQa_p,'PsiFp',PsiFa_p,'PsiQn',PsiQa_n,'PsiFn',PsiFa_n,'lp',llRpa,'ln',llRna,'s',sa,'kp',kpa,'kn',kna,'Phiq',Phiq,'PureN',pureN);
+%     H_low = 
+    
+    % Model reduction 1: Free(0th mode)
+        
 end
 

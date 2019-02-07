@@ -143,6 +143,7 @@ end
     % Remove the sorted number, retain only the complex (including errors)
     s5 = s2;
     s5(1:nSort,:) = [];
+    s3 = s5;
 
 %     %% Take only the first smallest COMPLEX mode
 %     
