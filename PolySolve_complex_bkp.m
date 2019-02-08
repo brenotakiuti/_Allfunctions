@@ -222,8 +222,8 @@ end
     index_p = real(s6p(:,2));
     index_n = real(s6n(:,2));
     
-    [ppa,o] = size(s6p);
-    [nn,o] = size(s6n);
+    [ppa,~] = size(s6p);
+    [nn,~] = size(s6n);
     
     % Separate the wavenumbers vectors
     kpa = s6p(1:ppa,1);
@@ -235,11 +235,11 @@ end
     
     % Calculate the "unsorted" wavemodes and left eigenvectors
     Phif = D*Phiq;
-    Psiq = pinv(Phiq);  %Another way is to calculate VR*inv(VR*VL) usinge VL from eig or VL'=eig(AA')
-    Psif = pinv(Phif);
+%     Psiq = pinv(Phiq);  %Another way is to calculate VR*inv(VR*VL) usinge VL from eig or VL'=eig(AA')
+%     Psif = pinv(Phif);
     
     Phiq2 = Phiq(:,[index_p index_n]);
-    Phif2 = Phiq(:,[index_p index_n]);
+%     Phif2 = Phiq(:,[index_p index_n]);
     
     Phiql1 = Phiq2(1:dofa,:);
     Phiqa1 = Phiql1;
