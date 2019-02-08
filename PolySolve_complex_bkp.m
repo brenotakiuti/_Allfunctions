@@ -234,7 +234,7 @@ end
     llRna = llRd(index_n);
     
     % Calculate the "unsorted" wavemodes and left eigenvectors
-    Phif = D*Phiq;
+%     Phif = D*Phiq;
 %     Psiq = pinv(Phiq);  %Another way is to calculate VR*inv(VR*VL) usinge VL from eig or VL'=eig(AA')
 %     Psif = pinv(Phif);
     
@@ -242,16 +242,15 @@ end
 %     Phif2 = Phiq(:,[index_p index_n]);
     
     Phiql1 = Phiq2(1:dofa,:);
-    Phiqa1 = Phiql1;
 %     Phifa1 = Phif(1:dofa,:);
     Phiqr1 = Phiq2(dofa+1:2*dofa,:);     %Zhong
-    Phifa1 = DLL*Phiql1 + DLR*Phiqr1;
+    Phifl1 = DLL*Phiql1 + DLR*Phiqr1;
     Phifr1 = DRL*Phiql1 + DRR*Phiqr1;
 
-    PhiQa_p = Phiqa1(:,1:length(index_p));
-    PhiQa_n = Phiqa1(:,length(index_p)+1:end);
-    PhiFa_p = Phifa1(:,1:length(index_p));
-    PhiFa_n = Phifa1(:,length(index_p)+1:end);
+    PhiQa_p = Phiql1(:,1:length(index_p));
+    PhiQa_n = Phiql1(:,length(index_p)+1:end);
+    PhiFa_p = Phifl1(:,1:length(index_p));
+    PhiFa_n = Phifl1(:,length(index_p)+1:end);
 %%   MITROU  
 %     PHI = [PhiQa_p PhiQa_n;PhiFa_p PhiFa_n];
 %     PSI = pinv(PHI);
