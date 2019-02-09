@@ -110,6 +110,22 @@ end
     % Reproduce the sorting order into Phiq
     Phiq1 = Phiq(:,index);
 
+    %   Fan's reduction method uses transfer matrix formulation. Here
+    % we just user our normal formulation and build a transfer matrix.
+    % If you are using transfer matrix formulation, just skip the next
+    % part.
+    
+    %% Build tranfer matrix Phi
+     
+    Phiql = Phiq(1:dofa,:);
+    Phiqr = Phiq(dofa+1:2*dofa,:);     %Zhong
+    Phifl = DLL*Phiql + DLR*Phiqr;
+    Phifr = DRL*Phiql + DRR*Phiqr;
+    
+    PhiqT = [Phiql; Phiqr];
+    PhifT = [Phifl; Phifr];
+    
+    PhiT = [PhiqT PhifT]';
     %% Mode reduction by fan2018
     %   There are 5 types of model reduction cited by Fan2018.
     %   Here we try all of then, and comparison will tell which is 
